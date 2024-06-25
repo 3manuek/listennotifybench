@@ -8,14 +8,14 @@ Relevant:
 
 Links to related projects that worth a reading about the matter:
 
-- [](https://gitlab.com/microo8/pglistener/-/tree/master?ref_type=heads)
-- [](https://tapoueh.org/blog/2018/07/postgresql-listen/notify/)
-- [](https://www.postgresql.org/docs/16/libpq-example.html)
+- [pglistener](https://gitlab.com/microo8/pglistener/-/tree/master?ref_type=heads)
+- [Postgres Listen/Notify](https://tapoueh.org/blog/2018/07/postgresql-listen/notify/)
+- [libpq example docs](https://www.postgresql.org/docs/16/libpq-example.html)
 
 
 Application side approaches:
 
-- [](https://www.baeldung.com/spring-postgresql-message-broker)
-- [](https://github.com/emilbayes/pg-ipc/tree/master)
-- [](https://dzone.com/articles/leveraging-postgres-listennotify-in-spring-boot)
+- [Message Broker in Java](https://www.baeldung.com/spring-postgresql-message-broker)
+- [pg-ipc](https://github.com/emilbayes/pg-ipc/tree/master)
+- [Spring Listen Notify](https://dzone.com/articles/leveraging-postgres-listennotify-in-spring-boot)
 - [](https://gitlab.com/3manuek/benchmark)
