@@ -1,0 +1,44 @@
+VERSION --allow-without-earthly-labels 0.8
+
+## ---------------------------------------------
+## We want Earthly to be as reproducible as possible,
+## so we'll pass every argument at build.
+## All those would be in the .arg file
+ARG --global  BUSYBOX_TAG='latest'
+FROM busybox:${BUSYBOX_TAG} ## BUSYBOX_VERSION
+
+ARG --global  BASE_IMAGE='ubuntu'
+ARG --global  BASE_TAG='jammy'
+
+ARG --global PATCH='listen_notify' # Will apply everything in the order that the list is returned
+
+
+# build-base:
+#     BUILD +dependencies
+#     BUILD +clone
+
+dependencies:
+    FROM ${BASE_IMAGE}:${BASE_TAG}
+    DO ./${BASE_IMAGE}/${BASE_TAG}+INSTALL_DEPS
+    SAVE IMAGE --cache-hint
+
+clone:
+    FROM +dependencies
+    DO ./${BASE_IMAGE}/${BASE_TAG}+CLONE
+    WORKDIR /src/postgres
+    SAVE IMAGE --cache-hint  
+
+build-w-patch:
+    FROM +clone
+    COPY ./patches/${PATCH}/*.patch ./
+    # Earthly uses sh, so we need to iterate
+    RUN set -ex ; \
+        for patch in *.patch ; do \
+            patch -p1 < "${patch}" ; \
+        done
+
+    DO ./${BASE_IMAGE}/${BASE_TAG}+COMPILE
+
+build-wo-patch:
+    FROM +clone
+    DO ./${BASE_IMAGE}/${BASE_TAG}+COMPILE

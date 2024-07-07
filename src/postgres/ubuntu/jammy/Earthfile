@@ -1,0 +1,62 @@
+VERSION --allow-without-earthly-labels 0.8
+
+ARG --global POSTGRES_BRANCH='REL_17_STABLE'
+ARG --global MAX_JOBS=${MAX_JOBS:-4}
+ARG --global PREFIX='/usr/local/postgres'
+
+INSTALL_DEPS:
+    FUNCTION
+    RUN set -ex; \
+        apt update
+
+    RUN set -ex ; \
+        DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+        build-essential flex libxml2-dev libxml2-utils libc6-dev \
+        libxslt-dev \
+        libreadline-dev zlib1g-dev libldap2-dev libpam0g-dev gettext  \
+        uuid uuid-dev cmake lld apt-utils pkg-config libossp-uuid-dev gnulib bison git
+
+    ## XXX implement IF jammy for the below statements, support focal would be 
+    ## changing libicu66 and python-dev
+    RUN set -ex ; \
+        DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+        xsltproc icu-devtools libicu70 libicu-dev gawk curl
+
+    RUN set -ex ; \
+        DEBIAN_FRONTEND=noninteractive \
+        apt install -y openjdk-8-jre openssl \
+            libssl-dev libpq-dev \
+            pkgconf unzip libutfcpp-dev gnupg \
+            python-dev-is-python3
+
+    RUN rm -rf /var/lib/apt/lists/*; \
+        apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
+    
+
+CLONE:
+    FUNCTION
+    RUN sysArch=$(uname -m)
+    RUN git clone --branch ${POSTGRES_BRANCH} --single-branch https://github.com/postgres/postgres.git /src/postgres
+
+
+COMPILE:
+    FUNCTION
+    RUN set -ex ; \
+        case "$sysArch" in \
+            x86_64 | amd64 | ppc64el) \
+                CFLAGS_ARG='${CFLAGS:--Wall -Wmissing-prototypes -Wpointer-arith -Wdeclaration-after-statement -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic}' ; \
+                CONFIGURE_FLAGS="" ;; \
+            * ) \
+                CFLAGS_ARG="-ggdb " CONFIGURE_FLAGS=' --build=arm-linux-gnueabihf ';; \
+        esac ; \
+        ./configure CFLAGS="${CFLAGS_ARG}" \
+            --prefix=${PREFIX} \
+            --enable-debug \
+            --with-ldap \
+            --with-libxml \
+            --with-pam \
+            --with-uuid=ossp \
+            --enable-nls \
+            --with-libxslt \
+            --with-icu ${CONFIGURE_FLAGS}
+    # RUN true

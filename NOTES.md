@@ -1,5 +1,9 @@
 # Notes
 
+## Links
+
+- [listen_notify_bench](https://github.com/3manuek/listen_notify_bench)
+
 Relevant:
 
 - [Support wildcards in LISTEN NOTIFY](https://commitfest.postgresql.org/48/4896/)
@@ -19,3 +23,24 @@ Application side approaches:
 - [pg-ipc](https://github.com/emilbayes/pg-ipc/tree/master)
 - [Spring Listen Notify](https://dzone.com/articles/leveraging-postgres-listennotify-in-spring-boot)
 - [](https://gitlab.com/3manuek/benchmark)
+
+## Building a container environment
+
+- Using Earthly will provide some abstraction of the container build. 
+- The ability to push the generated patches as functional images
+- The ability to set a debug flag through the process, when `--interactive` is set. 
+
+
+## Ideas for the benchmark model
+
+
+### Case Alerting 
+
+```mermaid
+
+```
+
+<DOMAIN>.ALERTS.ANOMALY
+<DOMAIN>.ALERTS.ABUSE
+<DOMAIN>.INFORMATION.STATUS
+
