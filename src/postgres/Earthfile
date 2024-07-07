@@ -13,9 +13,9 @@ ARG --global  BASE_TAG='jammy'
 ARG --global PATCH='listen_notify' # Will apply everything in the order that the list is returned
 
 
-# build-base:
-#     BUILD +dependencies
-#     BUILD +clone
+build-all:
+    BUILD +build-w-patch
+    BUILD +build-vanilla
 
 dependencies:
     FROM ${BASE_IMAGE}:${BASE_TAG}
@@ -39,6 +39,6 @@ build-w-patch:
 
     DO ./${BASE_IMAGE}/${BASE_TAG}+COMPILE
 
-build-wo-patch:
+build-vanilla:
     FROM +clone
     DO ./${BASE_IMAGE}/${BASE_TAG}+COMPILE

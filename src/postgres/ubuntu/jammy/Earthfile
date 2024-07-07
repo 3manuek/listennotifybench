@@ -59,4 +59,9 @@ COMPILE:
             --enable-nls \
             --with-libxslt \
             --with-icu ${CONFIGURE_FLAGS}
+    RUN make clean && make DESTDIR=${PREFIX}/tmp_install -j ${MAX_JOBS} world-bin && make install
+    WORKDIR ./contrib
+    RUN make 
+    RUN make install
+    WORKDIR /src/postgres
     # RUN true
