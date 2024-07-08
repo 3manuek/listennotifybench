@@ -31,8 +31,6 @@ dependencies:
 clone:
     FROM +dependencies
     
-    ENV LANG en_US.utf8
-
     GIT CLONE --branch ${POSTGRES_BRANCH} ${PG_REPOSITORY} ${PG_SRC}
 
     WORKDIR ${PG_SRC}
@@ -53,7 +51,10 @@ build-w-patch:
     RUN chown -R postgres: ${PREFIX}
     RUN chown -R postgres: ${PG_SRC}
     USER postgres
-
+    ENV LANG en_US.utf8
+    ENV LC_ALL en_US.utf8
+    ENV LC_CTYPE en_US.utf8
+    
     DO --pass-args ./${BASE_IMAGE}/${BASE_TAG}+INSTALLCHECK
 
 build-vanilla:
