@@ -41,7 +41,9 @@ build-w-patch:
     # ENV LANG en_US.utf8
     # ENV LC_ALL en_US.utf8
     # ENV LC_CTYPE en_US.utf8
-
+    ENV PATH="${PATH}:/usr/local/postgresql/bin"
+    ENV PGDATA="/var/lib/postgresql/data"
+    ENV SHELL="/bin/sh"
     COPY ./patches/${PATCH}/*.patch ./
 
     FOR patch IN $(ls *.patch)
@@ -53,9 +55,19 @@ build-w-patch:
     RUN useradd postgres  && usermod -a -G postgres postgres
     RUN chown -R postgres: ${PREFIX}
     RUN chown -R postgres: ${PG_SRC}
+    RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql && chmod 3777 /var/run/postgresql
     USER postgres
 
     DO --pass-args ./${BASE_IMAGE}/${BASE_TAG}+INSTALLCHECK
+
+    COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+    VOLUME ["/var/lib/postgresql/data"]
+  
+    ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+    EXPOSE 5432
+    CMD ["postgres"]
+
+    SAVE IMAGE --without-earthly-labels postgres-listen-notify:1
 
 build-vanilla:
     FROM +clone

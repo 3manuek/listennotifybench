@@ -10,9 +10,10 @@ one in this repository.
 
 ```earthly
 earthly --interactive --no-satellite +build-all
-earthly --no-satellite --interactive ./src/postgres+build-w-patch
+earthly --no-satellite --disable-remote-registry-proxy --interactive ./src/postgres+build-w-patch
 ```
 
+About `--disable-remote-registry-proxy`, see [Earthly issue 3736](https://github.com/earthly/earthly/issues/3736#issuecomment-1906786044).
 
 ## Applying patches
 

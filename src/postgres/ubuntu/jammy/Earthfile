@@ -61,7 +61,7 @@ COMPILE:
             # --enable-tap-tests \
             --with-icu "${CONFIGURE_FLAGS}"
     
-    #DESTDIR=${PREFIX}/tmp_install
+
     RUN make clean && make prefix=${PREFIX} -j ${MAX_JOBS} world-bin && make prefix=${PREFIX} install
     WORKDIR ./contrib
     RUN make 
