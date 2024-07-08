@@ -41,7 +41,7 @@ build-w-patch:
     # ENV LANG en_US.utf8
     # ENV LC_ALL en_US.utf8
     # ENV LC_CTYPE en_US.utf8
-    ENV PATH="${PATH}:/usr/local/postgresql/bin"
+    ENV PATH="${PATH}:${PREFIX}/bin"
     ENV PGDATA="/var/lib/postgresql/data"
     ENV SHELL="/bin/sh"
     COPY ./patches/${PATCH}/*.patch ./
@@ -56,6 +56,8 @@ build-w-patch:
     RUN chown -R postgres: ${PREFIX}
     RUN chown -R postgres: ${PG_SRC}
     RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql && chmod 3777 /var/run/postgresql
+    RUN mkdir /docker-entrypoint-initdb.d
+    RUN chown -R postgres:postgres /docker-entrypoint-initdb.d
     USER postgres
 
     DO --pass-args ./${BASE_IMAGE}/${BASE_TAG}+INSTALLCHECK
