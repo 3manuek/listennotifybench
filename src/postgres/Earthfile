@@ -11,6 +11,11 @@ ARG --global  BASE_IMAGE='ubuntu'
 ARG --global  BASE_TAG='jammy'
 
 ARG --global PATCH='listen_notify' # Will apply everything in the order that the list is returned
+# ARG --global POSTGRES_BRANCH='REL_17_STABLE'
+ARG --global POSTGRES_BRANCH='master'
+ARG --global PG_REPOSITORY='https://github.com/postgres/postgres.git'
+ARG --global PG_SRC='/src/postgres'
+ARG --global PREFIX='/usr/local/postgres'
 
 
 build-all:
@@ -20,25 +25,39 @@ build-all:
 dependencies:
     FROM ${BASE_IMAGE}:${BASE_TAG}
     DO ./${BASE_IMAGE}/${BASE_TAG}+INSTALL_DEPS
+
     SAVE IMAGE --cache-hint
 
 clone:
     FROM +dependencies
-    DO ./${BASE_IMAGE}/${BASE_TAG}+CLONE
-    WORKDIR /src/postgres
+    
+    ENV LANG en_US.utf8
+
+    GIT CLONE --branch ${POSTGRES_BRANCH} ${PG_REPOSITORY} ${PG_SRC}
+
+    WORKDIR ${PG_SRC}
     SAVE IMAGE --cache-hint  
 
 build-w-patch:
     FROM +clone
-    COPY ./patches/${PATCH}/*.patch ./
-    # Earthly uses sh, so we need to iterate
-    RUN set -ex ; \
-        for patch in *.patch ; do \
-            patch -p1 < "${patch}" ; \
-        done
 
-    DO ./${BASE_IMAGE}/${BASE_TAG}+COMPILE
+    COPY ./patches/${PATCH}/*.patch ./
+
+    FOR patch IN $(ls *.patch)
+        RUN patch -p1 < "${patch}"
+    END
+
+    DO --pass-args ./${BASE_IMAGE}/${BASE_TAG}+COMPILE
+
+    RUN useradd postgres  && usermod -a -G postgres postgres
+    RUN chown -R postgres: ${PREFIX}
+    RUN chown -R postgres: ${PG_SRC}
+    USER postgres
+
+    DO --pass-args ./${BASE_IMAGE}/${BASE_TAG}+INSTALLCHECK
 
 build-vanilla:
     FROM +clone
-    DO ./${BASE_IMAGE}/${BASE_TAG}+COMPILE
+    USER postgres
+    DO --pass-args ./${BASE_IMAGE}/${BASE_TAG}+COMPILE
+    # DO --pass-args ./${BASE_IMAGE}/${BASE_TAG}+INSTALLCHECK

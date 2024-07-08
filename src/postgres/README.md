@@ -10,7 +10,9 @@ one in this repository.
 
 ```earthly
 earthly --interactive --no-satellite +build-all
+earthly --no-satellite --interactive ./src/postgres+build-w-patch
 ```
+
 
 ## Applying patches
 

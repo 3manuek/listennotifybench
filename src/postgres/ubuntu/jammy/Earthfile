@@ -1,8 +1,7 @@
 VERSION --allow-without-earthly-labels 0.8
 
-ARG --global POSTGRES_BRANCH='REL_17_STABLE'
 ARG --global MAX_JOBS=${MAX_JOBS:-4}
-ARG --global PREFIX='/usr/local/postgres'
+ARG --global PG_SRC
 
 INSTALL_DEPS:
     FUNCTION
@@ -32,36 +31,43 @@ INSTALL_DEPS:
     RUN rm -rf /var/lib/apt/lists/*; \
         apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false;
     
-
-CLONE:
-    FUNCTION
-    RUN sysArch=$(uname -m)
-    RUN git clone --branch ${POSTGRES_BRANCH} --single-branch https://github.com/postgres/postgres.git /src/postgres
-
+## ---------------------------------------------
+## XXXAll the below functions are quite standard across
+## OS flavors, so they would be potentially move into a
+## library in the parent directory.
 
 COMPILE:
     FUNCTION
-    RUN set -ex ; \
-        case "$sysArch" in \
-            x86_64 | amd64 | ppc64el) \
-                CFLAGS_ARG='${CFLAGS:--Wall -Wmissing-prototypes -Wpointer-arith -Wdeclaration-after-statement -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic}' ; \
-                CONFIGURE_FLAGS="" ;; \
-            * ) \
-                CFLAGS_ARG="-ggdb " CONFIGURE_FLAGS=' --build=arm-linux-gnueabihf ';; \
-        esac ; \
-        ./configure CFLAGS="${CFLAGS_ARG}" \
+    ARG TARGETARG
+
+    IF [ "${TARGETARCH}" = "amd64" ]
+      ARG CFLAGS_ARG='${CFLAGS:--Wall -Wmissing-prototypes -Wpointer-arith -Wdeclaration-after-statement -Wendif-labels -Wmissing-format-attribute -Wformat-security -fno-strict-aliasing -fwrapv -fexcess-precision=standard -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic}' 
+
+    ELSE IF [ "${TARGETARCH}" = "arm64" ]
+      ARG CFLAGS_ARG="-ggdb " 
+      ARG CONFIGURE_FLAGS=' --build=arm-linux-gnueabihf '
+    END
+
+    RUN ./configure CFLAGS="${CFLAGS_ARG}" \
             --prefix=${PREFIX} \
             --enable-debug \
+            --enable-cassert \
             --with-ldap \
             --with-libxml \
             --with-pam \
             --with-uuid=ossp \
             --enable-nls \
             --with-libxslt \
+            --enable-tap-tests \
             --with-icu ${CONFIGURE_FLAGS}
+    
     RUN make clean && make DESTDIR=${PREFIX}/tmp_install -j ${MAX_JOBS} world-bin && make install
     WORKDIR ./contrib
     RUN make 
     RUN make install
-    WORKDIR /src/postgres
+    WORKDIR ${PG_SRC}
     # RUN true
+
+INSTALLCHECK:
+    FUNCTION
+    RUN make DESTDIR=${PREFIX}/tmp_install EXTRA_REGRESS_OPTS=--debug -j ${MAX_JOBS} check
