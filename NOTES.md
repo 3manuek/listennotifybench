@@ -4,6 +4,12 @@
 
 - [listen_notify_bench](https://github.com/3manuek/listen_notify_bench)
 
+Related to runtime debugging:
+
+- [runtime config developer](https://www.postgresql.org/docs/devel/runtime-config-developer.html), see `trace_notify`. [trace_notify GUC](https://www.postgresql.org/docs/devel/runtime-config-developer.html#GUC-TRACE-NOTIFY).
+- Implement [devcontainers](https://github.com/atomicdb/devcontainer/tree/main) but for runtime debugging.
+
+
 Relevant:
 
 - [Support wildcards in LISTEN NOTIFY](https://commitfest.postgresql.org/48/4896/)
@@ -29,7 +35,7 @@ Application side approaches:
 - Using Earthly will provide some abstraction of the container build. 
 - The ability to push the generated patches as functional images
 - The ability to set a debug flag through the process, when `--interactive` is set. 
-
+- https://github.com/atomicdb/devcontainer/tree/main/postgres integrate with devcontainers
 
 ## Ideas for the benchmark model
 
